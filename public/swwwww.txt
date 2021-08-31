@@ -1,0 +1,238 @@
+self.addEventListener('fetch', function(evt) {
+  console.log('The service worker is serving the asset.');
+  evt.respondWith(fromCache(evt.request));
+  evt.waitUntil(
+    update(evt.request)
+    .then(refresh)
+  );
+});
+
+//Open the cache where the assets were stored and search for the requested resource. Notice that in case of no matching, the promise still resolves but it does with undefined as value.
+
+ 
+function fromCache(request) {
+  return caches.open(CACHE).then(function (cache) {
+    return cache.match(request);
+  });
+}
+
+function update(request) {
+  return caches.open(CACHE).then(function (cache) {
+    return fetch(request).then(function (response) {
+      return cache.put(request, response.clone()).then(function () {
+        return response;
+      });
+    });
+  });
+}
+
+function refresh(response) {
+  return self.clients.matchAll().then(function (clients) {
+    clients.forEach(function (client) {
+      var message = {
+        type: 'refresh',
+        url: response.url,
+        eTag: response.headers.get('ETag')
+      };
+      client.postMessage(JSON.stringify(message));
+    });
+  });
+}
+
+
+
+var CACHE = 'sfa_offline';
+var urlsToCache = [
+  '/',
+  '/dashboard',
+  '/login',
+  '/history',
+  '/manifest.json',
+  '/sw.js',
+  '/plugins/fontawesome-free/css/all.min.css',
+  '/dist/css/adminlte.min.css',
+  '/plugins/select2/css/select2.min.css',
+  '/plugins/datatables-buttons/css/buttons.bootstrap4.min.css',
+  '/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css',
+  '/plugins/overlayScrollbars/css/OverlayScrollbars.min.css',
+  '/plugins/bootstrap4-duallistbox/bootstrap-duallistbox.min.css',
+  '/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css',
+  '/plugins/datatables-responsive/css/responsive.bootstrap4.min.css',
+  '/plugins/icheck-bootstrap/icheck-bootstrap.min.css',
+  '/favicon.ico',
+  '/plugins/fontawesome-free/webfonts/fa-solid-900.ttf',
+  '/plugins/fontawesome-free/webfonts/fa-solid-900.woff',
+  '/plugins/fontawesome-free/webfonts/fa-solid-900.woff2',
+  '/dist/js/demo.js',
+  '/dist/js/adminlte.js',
+  '/dist/js/adminlte.min.js',
+  '/plugins/jquery/jquery.min.js',
+  '/js/qrCodeScanner.js',
+  '/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js',
+  '/plugins/select2/js/select2.full.min.js',
+  '/plugins/datatables/jquery.dataTables.min.js',
+  '/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js',
+  '/plugins/datatables-responsive/js/dataTables.responsive.min.js',
+  '/plugins/datatables-responsive/js/responsive.bootstrap4.min.js',
+  '/plugins/datatables-buttons/js/dataTables.buttons.min.js',
+  '/plugins/datatables-buttons/js/buttons.bootstrap4.min.js',
+  '/plugins/pdfmake/vfs_fonts.js',
+  '/plugins/jszip/jszip.min.js',
+  '/plugins/datatables-buttons/js/buttons.html5.min.js',
+  '/plugins/datatables-buttons/js/buttons.print.min.js',
+  '/plugins/datatables-buttons/js/buttons.colVis.min.js',
+  '/plugins/bootstrap/js/bootstrap.bundle.min.js',
+  '/master',
+  '/images/baby.png',
+  '/images/fempro.png',
+  '/images/inco.png',
+  '/images/tissue.png',
+  '/images/logo.png',
+  '/images/icon/empty-list.png',
+  '/static/icon/icon-192x192.png',
+  '/static/icon/icon-256x256.png',
+  '/static/icon/icon-384x385.png',
+  '/static/icon/icon-512x512.png'
+];
+
+var gamesImages = [];
+for(var i=1; i<10; i++) {
+  gamesImages.push('/outlets/'+[i]);
+  gamesImages.push('/orders?id='+[i]);
+}
+var contentToCache = urlsToCache.concat(gamesImages);
+//console.log(contentToCache);
+
+self.addEventListener('install', function(event) {
+  // Perform install steps
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(function(cache) {
+        console.log('Opened cache');
+        return cache.addAll(contentToCache);
+      })
+  );
+});
+
+
+
+var CACHE_NAME = 'sfa_offline';
+var urlsToCache = [
+  '/dashboard',
+  '/login',
+  '/history',
+  '/manifest.json',
+  '/sw.js',
+  '/favicon.ico',
+  '/images/icon/empty-list.png',
+  '/images/logo.png',
+  '/plugins/fontawesome-free/css/all.min.css',
+  '/dist/css/adminlte.min.css',
+  '/plugins/select2/css/select2.min.css',
+  'plugins/fontawesome-free/webfonts/fa-solid-900.ttf',
+  '/plugins/fontawesome-free/webfonts/fa-solid-900.woff',
+  '/plugins/fontawesome-free/webfonts/fa-solid-900.woff2',
+  '/plugins/jquery/jquery.min.js'
+];
+
+var gamesImages = [];
+for(var i=1; i<10; i++) {
+  gamesImages.push('/outlets/'+[i]);
+}
+var contentToCache = urlsToCache.concat(gamesImages);
+//console.log(contentToCache);
+
+self.addEventListener('install', function(event) {
+  // Perform install steps
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(function(cache) {
+        console.log('Opened cache');
+        return cache.addAll(contentToCache);
+      })
+  );
+});
+
+// Open the cache where the assets were stored and search for the requested
+// resource. Notice that in case of no matching, the promise still resolves
+// but it does with `undefined` as value.
+function fromCache(request) {
+  return caches.open(CACHE).then(function (cache) {
+    return cache.match(request);
+  });
+}
+
+
+// Update consists in opening the cache, performing a network request and
+// storing the new response data.
+function update(request) {
+  return caches.open(CACHE).then(function (cache) {
+    return fetch(request).then(function (response) {
+      return cache.put(request, response.clone()).then(function () {
+        return response;
+      });
+    });
+  });
+}
+
+// Sends a message to the clients.
+function refresh(response) {
+  return self.clients.matchAll().then(function (clients) {
+    clients.forEach(function (client) {
+      // Encode which resource has been updated. By including the
+      // [ETag](https://en.wikipedia.org/wiki/HTTP_ETag) the client can
+      // check if the content has changed.
+      var message = {
+        type: 'refresh',
+        url: response.url,
+        // Notice not all servers return the ETag header. If this is not
+        // provided you should use other cache headers or rely on your own
+        // means to check if the content has changed.
+        eTag: response.headers.get('ETag')
+      };
+      // Tell the client about the update.
+      client.postMessage(JSON.stringify(message));
+    });
+  });
+}
+
+
+
+self.addEventListener('fetch', function(e) {
+  e.respondWith(
+    caches.match(e.request).then(function(response) {
+		
+		function cleanResponse(response) {
+		  const clonedResponse = response.clone();
+
+		  // Not all browsers support the Response.body stream, so fall back to reading
+		  // the entire body into memory as a blob.
+		  const bodyPromise = 'body' in clonedResponse ?
+			Promise.resolve(clonedResponse.body) :
+			clonedResponse.blob();
+
+		  return bodyPromise.then((body) => {
+			// new Response() is happy when passed either a stream or a Blob.
+			return new Response(body, {
+			  headers: clonedResponse.headers,
+			  status: clonedResponse.status,
+			  statusText: clonedResponse.statusText,
+			});
+		  });
+		} 
+      return response || fetch(e.request);
+    })
+  );
+});    
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keyList) => {
+          return Promise.all(keyList.map((key) => {
+        if(key !== CACHE_NAME) {
+          return caches.delete(key);
+        }
+      }));
+    })
+  );
+});
